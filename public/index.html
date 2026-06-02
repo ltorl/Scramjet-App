@@ -147,10 +147,15 @@
         }
     </style>
 
-    <script src="/scramjet.codecs.js"></script>
-    <script src="/scramjet.config.js"></script>
-    
-    <script src="/index.js" defer></script>
+    <script src="https://unpkg.com/@mercuryworkshop/epoxy-transport@3/dist/index.js"></script>
+    <script>
+        window.EpoxyClient = window.EpoxyTransport?.EpoxyClient;
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/register-sw.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/search.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/index.js"></script>
 </head>
 <body>
 
@@ -168,18 +173,27 @@
         const input = document.getElementById('url-input');
         const button = document.getElementById('go-btn');
         const iframe = document.getElementById('content-frame');
-        const searchContainer = document.getElementById('search-container');
+        const container = document.getElementById('search-container');
 
         async function registerSW() {
             if ('serviceWorker' in navigator) {
                 try {
-                    await navigator.serviceWorker.register('/scramjet/sw.js', {
-                        scope: __scramjet.prefix
+                    await navigator.serviceWorker.register('./sw.js', {
+                        scope: __scramjet.prefix 
                     });
-                    console.log('Service Worker registered successfully.');
+                    console.log('Scramjet Service Worker active.');
                 } catch (err) {
                     console.error('Service Worker registration failed:', err);
                 }
+            }
+        }
+
+        function initEpoxy() {
+            try {
+                window.epoxyTransport = new EpoxyClient('wss://wisp.mercurywork.shop/');
+                console.log('Connected to public Wisp proxy gateway.');
+            } catch (err) {
+                console.error('Epoxy transport initialization failed:', err);
             }
         }
 
@@ -196,12 +210,11 @@
                 url = 'https://' + url;
             }
 
-            const encodedUrl = __scramjet.prefix + __scramjet.encodeUrl(url);
-            
-            searchContainer.classList.add('active-mode');
+            container.classList.add('active-mode');
             iframe.classList.add('visible');
+
+            const encodedUrl = __scramjet.prefix + __scramjet.encodeUrl(url);
             iframe.src = encodedUrl;
-            input.blur(); 
         }
 
         button.addEventListener('click', () => navigate(input.value));
@@ -211,15 +224,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             registerSW();
-            
-            document.querySelector('.title').addEventListener('click', () => {
-                if (searchContainer.classList.contains('active-mode')) {
-                    searchContainer.classList.remove('active-mode');
-                    iframe.classList.remove('visible');
-                    setTimeout(() => iframe.src = '', 300);
-                    input.value = '';
-                }
-            });
+            initEpoxy();
         });
     </script>
 </body>
