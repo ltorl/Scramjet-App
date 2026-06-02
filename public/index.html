@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proxy</title>
     <style>
-        /* Modern Glassmorphic UI with glowing accents */
         :root {
             --glow-color: rgba(0, 195, 255, 0.6);
             --accent-color: #45a29e;
@@ -24,7 +23,6 @@
             color: #fff;
         }
 
-        /* Centered Search UI */
         #search-container {
             position: absolute;
             top: 50%;
@@ -39,7 +37,6 @@
             z-index: 10;
         }
 
-        /* Active Mode (Transitions to top navbar) */
         #search-container.active-mode {
             top: 0;
             transform: translate(-50%, 0);
@@ -108,14 +105,8 @@
             outline: none;
         }
         
-        #url-input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-            transition: color 0.3s ease;
-        }
-
-        #url-input:focus::placeholder {
-            color: transparent;
-        }
+        #url-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+        #url-input:focus::placeholder { color: transparent; }
 
         button { 
             padding: 12px 28px; 
@@ -128,7 +119,6 @@
             letter-spacing: 1px;
             text-transform: uppercase;
             transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(69, 162, 158, 0.3);
         }
         
         button:hover { 
@@ -137,7 +127,6 @@
             transform: scale(1.02);
         }
 
-        /* Iframe Styles */
         #content-frame { 
             position: absolute;
             top: 80px; 
@@ -148,7 +137,7 @@
             background-color: #fff;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.8s ease 0.2s; /* Delayed fade-in */
+            transition: opacity 0.8s ease 0.2s;
             z-index: 1;
         }
 
@@ -158,9 +147,10 @@
         }
     </style>
 
-    <script src="https://scramjet-app-ic0b.onrender.com/scramjet/scramjet.codecs.js"></script>
-    <script src="https://scramjet-app-ic0b.onrender.com/scramjet/scramjet.config.js"></script>
-    <script src="https://scramjet-app-ic0b.onrender.com/epoxy/index.js"></script>
+    <script src="/scramjet.codecs.js"></script>
+    <script src="/scramjet.config.js"></script>
+    
+    <script src="/index.js" defer></script>
 </head>
 <body>
 
@@ -183,22 +173,13 @@
         async function registerSW() {
             if ('serviceWorker' in navigator) {
                 try {
-                    await navigator.serviceWorker.register('https://scramjet-app-ic0b.onrender.com/scramjet/sw.js', {
+                    await navigator.serviceWorker.register('/scramjet/sw.js', {
                         scope: __scramjet.prefix
                     });
-                    console.log('Scramjet Service Worker registered successfully.');
+                    console.log('Service Worker registered successfully.');
                 } catch (err) {
                     console.error('Service Worker registration failed:', err);
                 }
-            }
-        }
-
-        function initEpoxy() {
-            try {
-                window.epoxyTransport = new EpoxyClient('wss://scramjet-app-ic0b.onrender.com/wisp/');
-                console.log('Epoxy Wisp Transport initialized.');
-            } catch (err) {
-                console.error('Epoxy initialization error:', err);
             }
         }
 
@@ -210,36 +191,27 @@
             const isUrl = url.includes('.') && !url.includes(' ');
             
             if (!isUrl) {
-                // Changed search engine to DuckDuckGo
                 url = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
             } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
                 url = 'https://' + url;
             }
 
-            const encodedUrl = 'https://scramjet-app-ic0b.onrender.com' + __scramjet.prefix + __scramjet.encodeUrl(url);
+            const encodedUrl = __scramjet.prefix + __scramjet.encodeUrl(url);
             
-            // Apply CSS transitions to shift UI from center to top navbar
             searchContainer.classList.add('active-mode');
             iframe.classList.add('visible');
-            
             iframe.src = encodedUrl;
-            
-            // Optional: Unfocus the input so the mobile keyboard drops down
             input.blur(); 
         }
 
-        // Event Listeners
         button.addEventListener('click', () => navigate(input.value));
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') navigate(input.value);
         });
 
-        // Initialize Services
         window.addEventListener('DOMContentLoaded', () => {
             registerSW();
-            initEpoxy();
             
-            // Allow clicking the top-left title to reset the view
             document.querySelector('.title').addEventListener('click', () => {
                 if (searchContainer.classList.contains('active-mode')) {
                     searchContainer.classList.remove('active-mode');
